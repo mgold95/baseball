@@ -13,6 +13,9 @@ import matplotlib.patches as patches
 from bs4 import BeautifulSoup
 import sys
 
+# change to zero or edit the filter for a non-waino pitcher
+WAINO_FILTER = 1
+
 # Check argument count, print format message if wrong
 if (len(sys.argv) != 6):
     print "Incorrect argument format."
@@ -34,7 +37,7 @@ soup = BeautifulSoup(xml, 'lxml')
 atbats = soup.find_all('atbat')
 pitches = []
 for ab in atbats:
-    if ab['pitcher'] == pitcher:# and ab['stand'] == handed:
+    if ab['pitcher'] == pitcher:
         for c in ab.children:
             if (c.name == 'pitch'):
                 pitches.append(c)
@@ -60,6 +63,26 @@ szr = 8.5/12.0
 szl = -szr
 
 for pitch in pitches:
+    speed = float(pitch['start_speed'])
+    brk_len = float(pitch['break_length'])
+    brk_ang = float(pitch['break_angle'])
+    conf = float(pitch['type_confidence'])
+# turns out pitchf/x sometimes does a terrible job at predicting
+# which type of pitch waino throws so this corrects for it
+    if (WAINO_FILTER == 1 and conf < 0.9):
+        if (speed < 89.0 and speed > 78.0 and brk_ang < 0):
+            pitch['pitch_type'] = "FC"
+        elif (speed < 76.0):
+            pitch['pitch_type'] = "CU"
+        elif (speed > 88.0 and brk_ang > 29 and pitch['pitch_type'] != "FF"):
+            pitch['pitch_type'] = "SI" 
+        elif (speed > 88.0 and brk_ang > 0 and pitch['pitch_type'] != "SI"):
+            pitch['pitch_type'] = "FF"
+        elif (pitch['pitch_type'] == "FC" and brk_ang > 0):
+            if (brk_ang < 20 and pitch['pitch_type'] != "SI"):
+                pitch['pitch_type'] = "FF"
+            elif (pitch['pitch_type'] != "FF"):
+                pitch['pitch_type'] = "SI"    
     if (pitch['pitch_type'] == ptype):
         if (pitch['type'] == 'S'):
             pgood[0].append(pitch['px'])
