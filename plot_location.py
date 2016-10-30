@@ -41,15 +41,15 @@ for ab in atbats:
 
 # parse out the pitches
 n = 0
-# pgood = good outcome
+# pgood = good outcome (x, z)
 pgood = []
 pgood.append([])
 pgood.append([])
-# pbad = bad outcome
+# pbad = bad outcome (x, z)
 pbad = []
 pbad.append([])
 pbad.append([])
-# pball = ball
+# pball = ball (x, z)
 pball = []
 pball.append([])
 pball.append([])
